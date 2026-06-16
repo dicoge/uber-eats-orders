@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>公司訂單</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+@font-face {
+  font-family: 'Pixel';
+  src: url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+}
+
+body {
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+/* Header */
+.header {
+  background: #16213e;
+  border-bottom: 3px solid #e94560;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+.header h1 span { color: #e94560; }
+
+.header-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: #aaa;
+}
+
+.header-stats .num { color: #fff; font-weight: 600; }
+
+/* Filters */
+.filters {
+  background: #16213e;
+  padding: 12px 20px;
+  border-bottom: 1px solid #2a2a4a;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filters label { font-size: 12px; color: #888; margin-right: 4px; }
+
+.filters select, .filters input {
+  background: #0f3460;
+  border: 1px solid #2a2a4a;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+}
+
+.filters select:focus, .filters input:focus {
+  border-color: #e94560;
+}
+
+.filters .btn {
+  background: #e94560;
+  border: none;
+  color: #fff;
+  padding: 6px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.filters .btn:hover { background: #d63851; }
+
+/* Today stats bar */
+.today-bar {
+  background: #0f3460;
+  padding: 10px 20px;
+  display: flex;
+  gap: 24px;
+  font-size: 13px;
+  border-bottom: 1px solid #2a2a4a;
+}
+
+.today-bar .stat-item { display: flex; gap: 6px; align-items: center; }
+.today-bar .label { color: #888; }
+.today-bar .value { color: #fff; font-weight: 600; }
+
+/* Main content */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px 20px;
+}
+
+/* Category summary boxes */
+.cat-boxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.cat-box {
+  background: #16213e;
+  border: 1px solid #2a2a4a;
+  border-radius: 6px;
+  padding: 14px;
+  text-align: center;
+}
+
+.cat-box .emoji { font-size: 24px; margin-bottom: 4px; }
+.cat-box .cat-name { font-size: 12px; color: #888; }
+.cat-box .cat-count { font-size: 22px; font-weight: 700; color: #fff; }
+.cat-box .cat-total { font-size: 13px; color: #e94560; font-weight: 600; }
+.cat-box.active { border-color: #e94560; background: #1a2744; }
+
+/* Table */
+.table-wrap {
+  background: #16213e;
+  border: 1px solid #2a2a4a;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+thead th {
+  background: #0f3460;
+  color: #fff;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  position: sticky;
+  top: 0;
+}
+
+thead th.sortable { cursor: pointer; }
+thead th.sortable:hover { color: #e94560; }
+thead th .arrow { font-size: 10px; margin-left: 4px; }
+
+tbody tr {
+  border-bottom: 1px solid #1e1e3e;
+  transition: background 0.15s;
+}
+
+tbody tr:hover { background: #1a2744; }
+
+tbody td {
+  padding: 8px 12px;
+  color: #ccc;
+}
+
+tbody td .badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.badge-lunch { background: #533483; color: #d4a5ff; }
+.badge-dinner { background: #1b4332; color: #95d5b2; }
+.badge-drink { background: #0b525b; color: #90e0ef; }
+.badge-other { background: #4a4e69; color: #c9ada7; }
+
+td.amount { text-align: right; font-weight: 600; color: #fff; }
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-top: 1px solid #2a2a4a;
+  font-size: 13px;
+}
+
+.pagination button {
+  background: #0f3460;
+  border: 1px solid #2a2a4a;
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.pagination button:hover { background: #e94560; border-color: #e94560; }
+.pagination button:disabled { opacity: 0.4; cursor: default; }
+.pagination button:disabled:hover { background: #0f3460; border-color: #2a2a4a; }
+
+/* Loading */
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.loading .spinner {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  border: 3px solid #2a2a4a;
+  border-top-color: #e94560;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Responsive */
+@media (max-width: 600px) {
+  .header { flex-direction: column; text-align: center; }
+  .header h1 { font-size: 18px; }
+  .filters { flex-direction: column; }
+  .today-bar { flex-wrap: wrap; }
+  .cat-boxes { grid-template-columns: repeat(2, 1fr); }
+  table { font-size: 12px; }
+  thead th, tbody td { padding: 6px 8px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🍽️ 公司<span>訂單</span></h1>
+  <div class="header-stats" id="headerStats">載入中...</div>
+</div>
+
+<div class="today-bar" id="todayBar"></div>
+
+<div class="filters">
+  <label>📅</label>
+  <select id="filterMonth"><option value="">全部月份</option></select>
+  
+  <label>🍴</label>
+  <select id="filterCategory">
+    <option value="">全部餐別</option>
+    <option value="午餐">🍜 午餐</option>
+    <option value="晚餐">🌙 晚餐</option>
+    <option value="飲料">🥤 飲料</option>
+    <option value="其他">📦 其他</option>
+  </select>
+  
+  <label>🔍</label>
+  <input type="text" id="filterRestaurant" placeholder="餐廳名稱..." style="width:180px">
+  
+  <button class="btn" onclick="applyFilters()">篩選</button>
+</div>
+
+<div class="container">
+  <div class="cat-boxes" id="catBoxes"></div>
+  
+  <div class="table-wrap">
+    <div id="tableArea">
+      <div class="loading">
+        <div class="spinner"></div>
+        <div>讀取訂單資料中...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Data ───
+let allOrders = [];
+let filtered = [];
+let currentPage = 1;
+const PAGE_SIZE = 50;
+
+// ─── Load ───
+async function loadData() {
+  try {
+    const [ordersRes, statsRes] = await Promise.all([
+      fetch('/api/orders'),
+      fetch('/api/stats')
+    ]);
+    allOrders = await ordersRes.json();
+    const stats = await statsRes.json();
+    
+    renderHeaderStats(stats);
+    renderTodayBar(allOrders);
+    renderCatBoxes(stats.categories);
+    populateMonthFilter(allOrders);
+    
+    applyFilters();
+  } catch(e) {
+    document.getElementById('tableArea').innerHTML = 
+      '<div class="loading" style="color:#e94560">❌ 載入失敗，請確認資料已匯出</div>';
+  }
+}
+
+// ─── Header Stats ───
+function renderHeaderStats(stats) {
+  document.getElementById('headerStats').innerHTML = `
+    <span>總訂單 <span class="num">${stats.total.toLocaleString()}</span></span>
+    <span>總金額 <span class="num">$${stats.totalAmount.toLocaleString()}</span></span>
+    <span>餐廳 <span class="num">${stats.restaurants}</span></span>
+    <span>省下 <span class="num">$${stats.totalDiscount.toLocaleString()}</span></span>
+  `;
+}
+
+// ─── Today Bar ───
+function renderTodayBar(orders) {
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  const thisMonth = today.slice(0, 7);
+  
+  const todayOrders = orders.filter(o => o.date === today);
+  const monthOrders = orders.filter(o => o.date && o.date.startsWith(thisMonth));
+  const todayTotal = todayOrders.reduce((s,o) => s + (o.total||0), 0);
+  const monthTotal = monthOrders.reduce((s,o) => s + (o.total||0), 0);
+  
+  document.getElementById('todayBar').innerHTML = `
+    <div class="stat-item"><span class="label">📆 今天</span><span class="value">${todayOrders.length} 筆</span></div>
+    <div class="stat-item"><span class="label">💰 今日</span><span class="value">$${todayTotal.toLocaleString()}</span></div>
+    <div class="stat-item"><span class="label">📊 本月</span><span class="value">${monthOrders.length} 筆 / $${monthTotal.toLocaleString()}</span></div>
+    <div class="stat-item"><span class="label">🗓️ 資料</span><span class="value">${orders[orders.length-1]?.date || '?'} ~ ${orders[0]?.date || '?'}</span></div>
+  `;
+}
+
+// ─── Cat Boxes ───
+function renderCatBoxes(categories) {
+  const icons = { '午餐': '🍜', '晚餐': '🌙', '飲料': '🥤', '其他': '📦' };
+  const html = Object.entries(categories).map(([cat, data]) => `
+    <div class="cat-box" onclick="setFilter('${cat}')">
+      <div class="emoji">${icons[cat] || '📦'}</div>
+      <div class="cat-name">${cat}</div>
+      <div class="cat-count">${data.count.toLocaleString()}</div>
+      <div class="cat-total">$${data.total.toLocaleString()}</div>
+    </div>
+  `).join('');
+  document.getElementById('catBoxes').innerHTML = html;
+}
+
+// ─── Month Filter ───
+function populateMonthFilter(orders) {
+  const months = new Set();
+  orders.forEach(o => { if (o.date) months.add(o.date.slice(0, 7)); });
+  const sorted = [...months].sort().reverse();
+  const sel = document.getElementById('filterMonth');
+  sorted.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m;
+    opt.textContent = m;
+    sel.appendChild(opt);
+  });
+}
+
+// ─── Filter ───
+function applyFilters() {
+  const month = document.getElementById('filterMonth').value;
+  const cat = document.getElementById('filterCategory').value;
+  const rest = document.getElementById('filterRestaurant').value.toLowerCase();
+  
+  filtered = allOrders.filter(o => {
+    if (month && (!o.date || !o.date.startsWith(month))) return false;
+    if (cat && o.category !== cat) return false;
+    if (rest && !o.restaurant.toLowerCase().includes(rest)) return false;
+    return true;
+  });
+  
+  currentPage = 1;
+  renderTable();
+}
+
+function setFilter(cat) {
+  document.getElementById('filterCategory').value = cat;
+  // Highlight active box
+  document.querySelectorAll('.cat-box').forEach(el => el.classList.remove('active'));
+  applyFilters();
+}
+
+// ─── Sort ───
+let sortCol = 'date';
+let sortDir = -1; // -1 = newest first
+
+function sortTable(col) {
+  if (sortCol === col) sortDir *= -1;
+  else { sortCol = col; sortDir = -1; }
+  renderTable();
+}
+
+function getSortArrow(col) {
+  if (sortCol !== col) return '';
+  return sortDir === -1 ? '▼' : '▲';
+}
+
+// ─── Render Table ───
+function renderTable() {
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page = [...filtered].sort((a, b) => {
+    let va = a[sortCol] || '', vb = b[sortCol] || '';
+    if (sortCol === 'total') { va = va || 0; vb = vb || 0; }
+    if (va < vb) return sortDir;
+    if (va > vb) return -sortDir;
+    return 0;
+  }).slice(start, start + PAGE_SIZE);
+  
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
+  
+  const badgeClass = { '午餐': 'badge-lunch', '晚餐': 'badge-dinner', '飲料': 'badge-drink', '其他': 'badge-other' };
+  
+  let html = `<table>
+    <thead><tr>
+      <th class="sortable" onclick="sortTable('date')">日期 <span class="arrow">${getSortArrow('date')}</span></th>
+      <th class="sortable" onclick="sortTable('category')">餐別 <span class="arrow">${getSortArrow('category')}</span></th>
+      <th class="sortable" onclick="sortTable('restaurant')">餐廳 <span class="arrow">${getSortArrow('restaurant')}</span></th>
+      <th class="sortable" onclick="sortTable('total')" style="text-align:right">金額 <span class="arrow">${getSortArrow('total')}</span></th>
+    </tr></thead>
+    <tbody>`;
+  
+  if (page.length === 0) {
+    html += `<tr><td colspan="4" style="text-align:center;padding:40px;color:#666">沒有符合的訂單</td></tr>`;
+  } else {
+    page.forEach(o => {
+      const cls = badgeClass[o.category] || 'badge-other';
+      const dateDisplay = o.date || '?';
+      const timeDisplay = o.time ? ` ${o.time}` : '';
+      html += `<tr>
+        <td>${dateDisplay}${timeDisplay}</td>
+        <td><span class="badge ${cls}">${o.category || '其他'}</span></td>
+        <td>${o.restaurant}</td>
+        <td class="amount">$${(o.total || 0).toLocaleString()}</td>
+      </tr>`;
+    });
+  }
+  
+  html += `</tbody></table>`;
+  
+  // Pagination
+  html += `<div class="pagination">
+    <button onclick="goPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>← 上一頁</button>
+    <span>第 ${currentPage} / ${totalPages} 頁 (共 ${filtered.length} 筆)</span>
+    <button onclick="goPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>下一頁 →</button>
+  </div>`;
+  
+  document.getElementById('tableArea').innerHTML = html;
+}
+
+function goPage(p) {
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
+  if (p < 1 || p > totalPages) return;
+  currentPage = p;
+  renderTable();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── Start ───
+loadData();
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: uber-eats-orders
+    runtime: node
+    repo: https://github.com/dicoge/uber-eats-orders
+    branch: main
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/stats
+    envVars:
+      - key: UPLOAD_API_KEY
+        value: uber3ats_d3fault_k3y
